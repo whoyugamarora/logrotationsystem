@@ -1,3 +1,7 @@
+#leave /var/log path as is
+#leave tmp file location as is
+
+
 import os
 import zipfile
 import tempfile
