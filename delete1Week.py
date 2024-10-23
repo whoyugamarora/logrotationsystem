@@ -1,3 +1,7 @@
+#add path to be the directory for program to look at to delete files
+
+
+
 import os
 import time
 import sys
