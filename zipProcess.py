@@ -1,5 +1,6 @@
 #leave /var/log path as is
 #leave tmp file location as is
+#line 27 change dest file path to desired output
 
 
 import os
