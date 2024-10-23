@@ -20,16 +20,3 @@ with tempfile.NamedTemporaryFile(mode='wb', suffix=".zip", dir='/tmp/', delete=F
             zipf.write(log_name, arcname=log_name.name)
 
     os.rename(temp_file.name, f'{os.path.expanduser("~")}/Desktop/zippedLogs.{date_str}.zip')
-
-    # A.
-    # recursive walk all files and folders and zip?
-    # what about rec files that are not named .log? Zip ALL files or just .log files?
-    # delete - delete ALL .log and other files or just .log?
-
-    # D.
-    # is this log under var log or is it under ~/...
-    # . if under var log, folder would be zipping itself while running
-
-    # G.
-    # which inputs are config? source dir? dest dir? zipping compression?
-    # daily run time?
