@@ -1,1 +1,1 @@
-@reboot 0 0 * * SUN path to py file
+@reboot 0 0 * * * path to py file
