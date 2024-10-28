@@ -10,13 +10,14 @@ import pathlib
 import logging
 from datetime import datetime
 
+main_dir = os.path.expanduser("~/course_project")
 log_dir = os.path.expanduser("~/course_project/log")
 zipped_dir = os.path.expanduser("~/course_project/zipped_logs")
 os.makedirs(zipped_dir, exist_ok=True)
 os.makedirs(log_dir, exist_ok=True)
 
 logging.basicConfig(
-    filename=f"{log_dir}/log_rotation.log",
+    filename=f"{main_dir}/log_rotation.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -29,10 +30,15 @@ with tempfile.NamedTemporaryFile(mode='wb', suffix=".zip", dir='/tmp/', delete=F
     with zipfile.ZipFile(temp_file.name, 'a') as zipf:
         # Add files to the zip
         log_files = list(pathlib.Path(log_dir).glob('*.log'))
-                
-        for log_file in log_files:
-            if log_file.is_file():
-                zipf.write(log_file, arcname=log_file.name)
+
+        if log_files:
+            for log_file in log_files:   
+                if log_file.is_file():
+                    zipf.write(log_file, arcname=log_file.name)
+                    print(f"Adding file: {log_file}")
+            print("Zip File Created Successfully")
+        else:
+            print("No log files found in the specified directory.")
 
     final_zip_path = os.path.join(zipped_dir, f'zippedLogs.{date_str}.zip')
     os.rename(temp_file.name, final_zip_path)
