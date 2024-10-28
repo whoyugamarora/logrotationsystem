@@ -7,19 +7,31 @@ import os
 import zipfile
 import tempfile
 import argparse
+import configparser
 import pathlib
 import logging
 from datetime import datetime
 
-main_dir = os.path.expanduser("~/course_project")
-log_dir = os.path.expanduser("~/course_project/log")
-zipped_dir = os.path.expanduser("~/course_project/zipped_logs")
+config = configparser.ConfigParser()
+config.read("log.cfg")
+
+
+
+parser = argparse.ArgumentParser(description="Log Rotation System")
+parser.add_argument("--threshold_mb", type=float, default=config.getfloat("settings", "threshold_mb", fallback=100), help="Threshold size in MB for logging a warning.")
+parser.add_argument("--main_dir", type=str, default=os.path.expanduser(config.get("settings", "main_dir", fallback="~/course_project")), help="Directory where the whole project will be stored.")
+parser.add_argument("--log_dir", type=str, default=os.path.expanduser(config.get("settings", "log_dir", fallback="~/course_project/log")), help="Directory where log files are stored.")
+parser.add_argument("--zipped_dir", type=str, default=os.path.expanduser(config.get("settings", "zipped_dir", fallback="~/course_project/zipped_logs")), help="Directory where zipped logs will be saved.")
+parser.add_argument("--log_file", type=str, default=os.path.expanduser(config.get("settings", "log_file", fallback="~/course_project/log_rotation.log")), help="File to store logs of the script.")
+args = parser.parse_args()
+
+
+main_dir = args.main_dir
+log_dir = args.log_dir
+zipped_dir = args.zipped_dir
 os.makedirs(zipped_dir, exist_ok=True)
 os.makedirs(log_dir, exist_ok=True)
 
-parser = argparse.ArgumentParser(description="Log Rotation System")
-parser.add_argument("--threshold_mb", type=float, default=100, help="Threshold size in MB for logging a warning.")
-args = parser.parse_args()
 
 logging.basicConfig(
     filename=f"{main_dir}/log_rotation.log",
@@ -73,7 +85,7 @@ def check_log_size(log_dir, threshold_mb):
 
     if total_size_mb >= threshold_mb:
         logging.warning(f"Total log size exceeded {threshold_mb} MB: {total_size_mb} MB")
-        print(f"Total log size have exceeded Threshold Size of {threshold_mb} MB: {total_size_mb} MB")
+        print(f"WARNING!Total log size have exceeded Threshold Size of {threshold_mb} MB: {total_size_mb} MB")
 
 check_log_size(log_dir, threshold_mb)
 
