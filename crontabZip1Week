@@ -1,1 +1,2 @@
-@reboot 0 0 * * * path to py file
+@reboot path to py file
+@daily path to py file
