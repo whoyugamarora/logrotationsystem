@@ -11,6 +11,7 @@ import configparser
 import pathlib
 import logging
 from datetime import datetime
+import sys
 
 config = configparser.ConfigParser()
 config.read("log.cfg")
@@ -25,12 +26,34 @@ parser.add_argument("--zipped_dir", type=str, default=os.path.expanduser(config.
 parser.add_argument("--log_file", type=str, default=os.path.expanduser(config.get("settings", "log_file", fallback="~/course_project/log_rotation.log")), help="File to store logs of the script.")
 args = parser.parse_args()
 
+if not os.path.isdir(args.main_dir):
+    sys.stderr.write(f"Error, {args.main_dir} directory not found")
+    sys.exit(1)
+if not os.path.isdir(args.log_dir):
+    sys.stderr.write(f"Error, {args.log_dir} directory not found")
+    sys.exit(1)
+if not os.path.isdir(args.zipped_dir):
+    sys.stderr.write(f"Error, {args.zipped_dir} directory not found")
+    sys.exit(1)
+
+if not isinstance(args.threshold_mb, float):
+    sys.stderr.write(f"Error, {args.threshold_mb} is not a valid Threshold size")
+    sys.exit(1)
+
 
 main_dir = args.main_dir
 log_dir = args.log_dir
 zipped_dir = args.zipped_dir
-os.makedirs(zipped_dir, exist_ok=True)
-os.makedirs(log_dir, exist_ok=True)
+
+try:
+    os.makedirs(zipped_dir, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
+except OSError as e:
+    sys.stderr.write(f"Operating System error creating {zipped_dir} or {log_dir}: {e}")
+    sys.exit(1)
+except Exception as e:
+    sys.stderr.write(f"Error during {zipped_dir} or {log_dir} creation: {e}")
+    sys.exit(1)
 
 
 logging.basicConfig(
@@ -69,25 +92,37 @@ try:
         else:
             logging.info("No log files were found to zip.")
 
+except PermissionError as e:
+    logging.error(f"Permission error during zipping files: {e}")
+    sys.exit(1)
+except OSError as e:
+    logging.error(f"Operating system error during zipping logs: {e}")
+    sys.exit(1)
 except Exception as e:
     logging.error(f"Error during zipping logs: {e}")
+    sys.exit(1)
 
 threshold_mb = args.threshold_mb
 def check_log_size(log_dir, threshold_mb):
     
-    total_size = 0
-    for root, _, files in os.walk(log_dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            total_size += os.path.getsize(file_path)
+    try:
+        total_size = 0
+        for root, _, files in os.walk(log_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                total_size += os.path.getsize(file_path)
 
-    total_size_mb = total_size / (1024 * 1024)
+        total_size_mb = total_size / (1024 * 1024)
 
-    if total_size_mb >= threshold_mb:
-        logging.warning(f"Total log size exceeded {threshold_mb} MB: {total_size_mb} MB")
-        print(f"WARNING!Total log size have exceeded Threshold Size of {threshold_mb} MB: {total_size_mb} MB")
+        if total_size_mb >= threshold_mb:
+            logging.warning(f"Total log size exceeded {threshold_mb} MB: {total_size_mb} MB")
+            print(f"WARNING!Total log size have exceeded Threshold Size of {threshold_mb} MB: {total_size_mb} MB")
+
+    except OSError as e:
+        logging.error(f"Operating system error during log size calculation: {e}")
+        return 1
+    except Exception as e:
+        logging.error(f"Error during log size calculation: {e}")
+        return 1
 
 check_log_size(log_dir, threshold_mb)
-
-
-
