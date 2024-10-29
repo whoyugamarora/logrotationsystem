@@ -11,10 +11,12 @@ import logging
 from datetime import datetime
 import sys
 
+#This Configparser reads the configuration file and gives the values to the script  
 def parse_config():
     config = configparser.ConfigParser()
     config.read("log.cfg")
 
+    #This prints the usage statement when -h or --help is typed
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Log Rotation System",
@@ -46,7 +48,8 @@ Error messages and exit codes:
     - Error messages are logged for invalid directories or permission issues.
     - The script exits with code 1 for errors, and code 0 for successful execution.
         ''')
-    
+
+    #This argsparser takes the values from command line and puts it in the script
     parser.add_argument("--threshold_mb", type=float, default=config.getfloat("settings", "threshold_mb", fallback=100.0),
                         help="Threshold size in MB for logging a warning.")
     parser.add_argument("--main_dir", type=str,
@@ -64,6 +67,7 @@ Error messages and exit codes:
     args = parser.parse_args()
     return args
 
+#This function sets up the directories if not already created
 def setup_dir(args):
     if not os.path.isdir(args.main_dir):
         sys.stderr.write(f"Error, {args.main_dir} directory not found")
@@ -95,6 +99,8 @@ def setup_dir(args):
     logging.basicConfig(filename=f"{main_dir}/log_rotation.log", level=logging.INFO,
                         format="%(asctime)s - %(levelname)s - %(message)s")
 
+
+#This function zips the log files in the folder and renames it to the final location
 def zip_up_logs(zipped_dir, log_dir):
     now = datetime.now()
     date_str = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -143,6 +149,8 @@ def zip_up_logs(zipped_dir, log_dir):
            except OSError as e:
                logging.error(f"Couldn't delete log file {log_file} after zipping {e}")
 
+
+#This function checks the size of log folder and displays a warning sign if size > threshold
 def check_log_size(log_dir, threshold_mb):
     try:
         total_size = 0
@@ -164,6 +172,8 @@ def check_log_size(log_dir, threshold_mb):
         logging.error(f"Error during log size calculation: {e}")
         return 1
 
+
+#This would zip the old zip files that are more than a week old
 def delete_old_zips(zipped_dir):
     try:
         now = time.time()
