@@ -15,7 +15,38 @@ def parse_config():
     config = configparser.ConfigParser()
     config.read("log.cfg")
 
-    parser = argparse.ArgumentParser(description="Log Rotation System")
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Log Rotation System",
+        epilog='''\
+Usage examples:
+    python script.py --threshold_mb 50 --main_dir ~/my_project --log_dir ~/my_project/log --zipped_dir ~/my_project/zipped_logs --log_file ~/my_project/log_rotation.log
+
+Expected results:
+    - The script will zip log files in the specified log directory if their total size exceeds the threshold.
+    - Zipped logs will be stored in the specified zipped directory.
+    - Old zipped logs older than a week will be deleted.
+
+Parameters:
+    --threshold_mb (float): The size in MB at which a warning is logged.
+    --main_dir (str): Directory for the entire project.
+    --log_dir (str): Directory for log files.
+    --zipped_dir (str): Directory for storing zipped logs.
+    --log_file (str): File to log the script's actions.
+
+Configuration file layout (log.cfg):
+    [settings]
+    threshold_mb = 100.0
+    main_dir = ~/course_project
+    log_dir = ~/course_project/log
+    zipped_dir = ~/course_project/zipped_logs
+    log_file = ~/course_project/log_rotation.log
+
+Error messages and exit codes:
+    - Error messages are logged for invalid directories or permission issues.
+    - The script exits with code 1 for errors, and code 0 for successful execution.
+        ''')
+    
     parser.add_argument("--threshold_mb", type=float, default=config.getfloat("settings", "threshold_mb", fallback=100.0),
                         help="Threshold size in MB for logging a warning.")
     parser.add_argument("--main_dir", type=str,
@@ -43,7 +74,6 @@ def setup_dir(args):
     if not os.path.isdir(args.zipped_dir):
         sys.stderr.write(f"Error, {args.zipped_dir} directory not found")
         sys.exit(1)
-
     if not isinstance(args.threshold_mb, float):
         sys.stderr.write(f"Error, {args.threshold_mb} is not a valid Threshold size")
         sys.exit(1)
