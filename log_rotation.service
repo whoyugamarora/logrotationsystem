@@ -1,0 +1,16 @@
+
+#Put this file in /etc/systemd/system/
+
+[Unit]
+Description=Log Rotation Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/logrotationsystem/zipProcess.py
+WorkingDirectory=/root/logrotationsystem/
+User=root
+
+[Install]
+WantedBy=multi-user.target
+
