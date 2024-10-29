@@ -10,6 +10,8 @@ import pathlib
 import logging
 from datetime import datetime
 import sys
+import subprocess
+import pwd
 
 #This Configparser reads the configuration file and gives the values to the script  
 def parse_config():
@@ -64,8 +66,41 @@ Error messages and exit codes:
     parser.add_argument("--log_file", type=str, default=os.path.expanduser(
         config.get("settings", "log_file", fallback="~/course_project/log_rotation.log")),
                         help="File to store logs of the script.")
+    parser.add_argument("--delegate", type=str, help="Transfer script ownership to another user")
     args = parser.parse_args()
     return args
+
+def transfer_ownership(args):
+    try:
+        pwd.getpwnam(args.delegate)
+    except KeyError:
+      sys.stderr.write(f"Error, user {args.delegate} does not exist")
+      sys.exit(1)
+     
+    try:
+        # swap ownership of the logrotate service file
+        subprocess.run(["sudo", "chown", f"{args.delegate}:{args.delegate}", "/etc/systemd/system/log_rotation.service"], check=True)
+        print(f"Ownership transferred to {args.delegate}")
+
+        # service file updated to run under new user
+        with open("/etc/systemd/system/log_rotation.service", "r") as file:
+            lines = file.readlines()
+        with open("/etc/systemd/system/log_rotation.service", "w") as file:
+            for line in lines:
+                if line.startswith("User="):
+                    file.write(f"User={args.delegate}\n")
+                else:
+                    file.write(line)
+
+        # Reload the systemd and restart service
+        subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
+        subprocess.run(["sudo", "systemctl", "restart", "log_rotation.service"], check=True)
+        print(f"Log rotation service restarted under user {args.delegate}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error during ownership transfer: {e}")
+        sys.exit(1)
+
 
 #This function sets up the directories if not already created
 def setup_dir(args):
@@ -198,6 +233,8 @@ def delete_old_zips(zipped_dir):
 
 def main():
     args = parse_config()
+    if args.delegate:
+        transfer_ownership(args)
     setup_dir(args)
     zip_up_logs(args.zipped_dir, args.log_dir)
     check_log_size(args.log_dir, args.threshold_mb)
