@@ -1,0 +1,11 @@
+
+#Put this file in /etc/systemd/system/
+
+[Unit]
+Description=Timer for Log Rotation Service to run daily
+
+[Timer]
+OnCalendar=daily
+
+[Install]
+WantedBy=multi-user.target
