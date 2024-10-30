@@ -27,6 +27,8 @@ Usage examples:
     python script.py --threshold_mb 50 --main_dir ~/my_project --log_dir ~/my_project/log --zipped_dir ~/my_project/zipped_logs --log_file ~/my_project/log_rotation.log
 
 Expected results:
+
+    "Zip File Created Successfully"
     - The script will zip log files in the specified log directory if their total size exceeds the threshold.
     - Zipped logs will be stored in the specified zipped directory.
     - Old zipped logs older than a week will be deleted.
@@ -37,6 +39,7 @@ Parameters:
     --log_dir (str): Directory for log files.
     --zipped_dir (str): Directory for storing zipped logs.
     --log_file (str): File to log the script's actions.
+    --delegate (str): Transfer script ownership to another user.
 
 Configuration file layout (log.cfg):
     [settings]
@@ -211,7 +214,7 @@ def check_log_size(log_dir, threshold_mb):
         return 1
 
 
-#This would zip the old zip files that are more than a week old
+#This would delete the old zip files that are more than a week old
 def delete_old_zips(zipped_dir):
     try:
         now = time.time()
