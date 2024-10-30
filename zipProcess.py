@@ -104,17 +104,20 @@ def transfer_ownership(args):
 
 #This function sets up the directories if not already created
 def setup_dir(args):
-    if not os.path.isdir(args.main_dir):
-        sys.stderr.write(f"Error, {args.main_dir} directory not found")
+    if not isinstance(args.main_dir, str):
+        sys.stderr.write(f"Error, {args.main_dir} is not a valid path")
         sys.exit(1)
-    if not os.path.isdir(args.log_dir):
-        sys.stderr.write(f"Error, {args.log_dir} directory not found")
+    if not isinstance(args.log_dir, str):
+        sys.stderr.write(f"Error, {args.log_dir} is not a valid path")
         sys.exit(1)
-    if not os.path.isdir(args.zipped_dir):
-        sys.stderr.write(f"Error, {args.zipped_dir} directory not found")
+    if not isinstance(args.zipped_dir, str):
+        sys.stderr.write(f"Error, {args.zipped_dir} is not a valid path")
         sys.exit(1)
     if not isinstance(args.threshold_mb, float):
         sys.stderr.write(f"Error, {args.threshold_mb} is not a valid Threshold size")
+        sys.exit(1)
+    if args.threshold_mb < 1:
+        sys.stderr.write(f"Error, invalid threshold size: {args.threshold_mb}. Threshold size cannot be less than 1")
         sys.exit(1)
 
     main_dir = args.main_dir
